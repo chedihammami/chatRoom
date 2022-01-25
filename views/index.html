@@ -48,7 +48,7 @@
     let audio = new Audio("Sound.mp3");
     function init() {
 
-      let PORT = 80 ; 
+      let PORT = 8112 ; 
       // If a WebSocket connection exists already, close it
       if (wsClient) {
         wsClient.onerror = wsClient.onopen = wsClient.onclose = null;
