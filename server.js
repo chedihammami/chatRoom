@@ -4,7 +4,7 @@ const app = express() ;
 const fs = require('fs'); 
 const WebSocket = require('ws');
 const path = require('path');  
-const PORT =  8112 ; 
+const PORT = process.env.PORT || 8112 ; 
 
 
 const server = app.listen(PORT , () => 
