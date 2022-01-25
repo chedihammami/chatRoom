@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <title>ChatRoom</title>
+</head>
+<body>
+  <h2>ChatRoom</h2>
+  <div class="chat">
+    <!-- Messages will appear here -->
+  </div>
+  <form id="messageForm">
+    <input type="text" id="messageBox" placeholder="Type your message here" />
+    <button id="send" title="Send">➤</button>
+  </form>
+  
+  <script> 
+
+    let data = {
+       name: "", 
+       message: ""
+    }
+    let wsClient; 
+    
+
+    
+    const messageBox = document.querySelector('#messageBox');
+    const messageForm = document.querySelector('#messageForm');
+      
+    // Event handler when the client enters a message
+    messageForm.onsubmit = function(e) {
+      e.preventDefault();
+      
+      // Get the message from the messageBox
+      const message = messageBox.value;
+      // Render the sent message on the client as your own and reset the messageBox
+      showMessageSent("Me", message);
+      messageBox.value = '';
+      
+      sendMessageToServer(message);
+    }
+
+
+    let audio = new Audio("Sound.mp3");
+    function init() {
+
+      let PORT = 8080 ; 
+      // If a WebSocket connection exists already, close it
+      if (wsClient) {
+        wsClient.onerror = wsClient.onopen = wsClient.onclose = null;
+        wsClient.close();
+      }
+
+
+
+      const URL = 'ws://localhost:' + PORT;
+      wsClient = new WebSocket(URL);       
+
+      wsClient.onopen = (event) => {
+         let value = window.prompt("Enter your name");
+         data.name = value ;  
+
+      }
+      wsClient.onmessage = ( messageEvent ) => 
+      {
+         const message = JSON.parse(messageEvent.data); 
+         audio.play(); 
+         showMessageReceived(message.name, message.message); 
+      } 
+
+
+
+
+      // .onclose is executed when the socket connection is closed
+      wsClient.onclose = (event) => {
+        sendMessageToServer("Disconnected");
+        showMessageReceived('No WebSocket connection :(',"");
+        wsClient = null;
+      }
+
+      // .onerror is executed when error event occurs on the WebSocket connection
+      wsClient.onerror = (event) => {
+        console.error("WebSocket error observed:", event);
+        wsClient = null;
+      }
+    }
+
+    function sendMessageToServer(message) {
+      // Make sure the client is connected to the ws server
+      if (!wsClient) {
+        showMessageReceived('No WebSocket connection :(',"");
+        return;
+      }
+      
+      // TODO: 
+      // Exercise 6: Send the message from the messageBox to the server
+      data.message = message ;
+      wsClient.send(JSON.stringify(data));
+      // Exercise 9: Send the message in a custom message object with .type and .payload properties
+    }
+
+
+
+    const messages = document.querySelector('.chat');
+    
+    // These functions are just aliases of the showNewMessage function
+    function showMessageSent(name, message) { 
+      showNewMessage(name,message, 'sending'); 
+    }
+    function showMessageReceived(name,message) {
+      showNewMessage(name,message, 'receiving'); 
+    }
+  
+    function showNewMessage(name, message, className) {
+      // Create a text node element for the message
+      const textNode = document.createElement('div');
+      textNode.innerHTML = name + ": " +  message;
+      textNode.className = 'message';
+      
+      // Wrap the text node in a message element
+      const messageNode = document.createElement('div');
+      messageNode.className = 'messages ' + className;
+      messageNode.appendChild(textNode);
+      
+      // Append the messageNode to the messages container element
+      messages.appendChild(messageNode);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // Start the WebSocket server
+    init();
+
+  </script>
+</body>
+</html>
